@@ -81,5 +81,62 @@ Bronnen: Stardock-fora (2024–2026), XDA-review (jul 2025), AlternativeTo-revie
   - Zoeken in tabs of een opdrachtenpalet.
   - Testen met FancyZones, UWP-apps en meerdere schermen.
 
+## Featurevergelijking en aanbevelingen (16 nov 2026)
+
+### Wat de drie programma's bieden
+
+| Thema | Groupy 2 | TidyTabs | WindowTabs (beta nov 2026) | ProgramTabs 0.2.1 |
+|---|---|---|---|---|
+| Tabs voor elk programma, slepen om te groeperen | ✔ | ✔ | ✔ | ✔ |
+| Automatisch groeperen | zelfde programma, regels | regels | per programma | alles (per scherm) |
+| Uitsluiten / whitelist per programma | beperkt | ✔ zwart/witte lijst | ✔ app-regels | alleen `--only` |
+| Opgeslagen groepen / werkruimtes | ✔ "Groupings" op de taakbalk | ✔ groepspositie | ✔ werkruimtes (start ook apps) | ✘ (wel vaste tabs) |
+| Vaste tabs | ✘ | ✘ | ✔ | ✔ + heropenen + logo |
+| Naast elkaar binnen een groep | ✘ (klacht) | via AquaSnap | ✔ split view | ✔ + live spiegelbeeld |
+| Tabs hernoemen | ? | ✔ | ? | ✔ per venster/programma |
+| Alleen icoon | ? | ? | ? | ✔ |
+| Voorbeeld bij zweven | ? | ✔ | ✔ (optioneel) | ✘ |
+| Kleuren per tab/groep | ✔ accenten | aanpasbaar uiterlijk | ✔ per tab/app/groep | ✘ (volgt Windows-thema) |
+| Tabbalk verbergen als niet nodig | ? | ✔ auto-hide en vervagen | ✔ bij gemaximaliseerd | ✘ |
+| Pauze bij volledig scherm | ? | ? | ✔ | ✘ |
+| Sneltoetsen | ? | ✔ instelbaar | ✔ instelbaar, Ctrl+1–9, zoeken, palet | vast, beperkt |
+| Opdrachtenpalet / tabs zoeken | ✘ | ✘ | ✔ | ✘ |
+| "+" nieuw venster van zelfde programma | ✘ | ✘ | ✔ (sneltoets) | ✘ |
+| Alle vensters van een programma sluiten | ? | ? | ✔ (bulk sluiten) | ✔ |
+| Taakbalk: één knop per groep | ✔ | ✘ | ✔ (optioneel) | ✘ |
+| Instellingenscherm, export/import | ✔ | ✔ | ✔ JSON, portable | ✘ (tekstbestanden) |
+| Automatische updates | ✔ | ✔ | via releases | ✔ |
+| Multi-monitor | ✔ | ✔ (+DisplayFusion/UltraMon) | ✔ | per-monitor DPI, niet getest |
+
+### Wat gebruikers het meest waarderen (en waarom)
+1. **Opgeslagen groepen die je met één klik opent** (Groupy's meest geprezen functie). Gebruikers werken in vaste "sets": mail + agenda + projectmap. Wat ze missen: het openen bij het aanmelden, en betrouwbaarheid (groepen die niet goed terugkomen).
+2. **Automatisch groeperen met regels, plus uitzonderingen.** Niemand wil alles handmatig slepen, maar ook niet dat pop-ups, dialoogvensters of bepaalde apps tabs krijgen. Voor TidyTabs en WindowTabs is dit een kernfunctie, en het staat hoog op de wensenlijst van WindowTabs (#102).
+3. **Rust op het scherm.** TidyTabs verkoopt zich expliciet met "geen visuele ruis": tabs verbergen, vervagen, geen hapering of flikkering. WindowTabs verbergt de tabs bij gemaximaliseerde vensters en pauzeert bij volledig scherm.
+4. **Toetsenbord.** Instelbare sneltoetsen, direct naar tab 1–9, tabs zoeken en het opdrachtenpalet zijn bij WindowTabs de recentste toevoegingen.
+5. **Overzicht via kleur en voorbeeld.** Groupy's accentkleuren en een voorbeeld bij zweven (TidyTabs, WindowTabs) helpen om veel tabs snel uit elkaar te houden.
+6. **Naast elkaar werken binnen een groep.** Bij Groupy een expliciete klacht. WindowTabs voegde het in oktober 2026 toe. ProgramTabs heeft het al, met spiegelbeeld.
+7. **Klikdoel en stabiliteit.** Een TidyTabs-gebruiker vraagt bredere tabs (misklikken). Problemen met multi-monitor, DPI en FancyZones zijn terugkerende klachten bij alle drie.
+
+### Aanbevelingen voor ProgramTabs, in volgorde
+1. **Uitzonderingen en veilig gedrag op het werk.**
+   - Vensters op volledig scherm (presentaties, video's, gedeeld scherm) automatisch overslaan en de tabbalk dan verbergen.
+   - Rechtsklik → "Nooit als tab tonen (*programma*)" en een uitsluitlijst.
+   - *Waarom eerst:* nu kan ProgramTabs een PowerPoint-presentatie in een groep trekken. Op een werklaptop is dat het grootste risico, en het is relatief weinig werk.
+2. **Werkruimtes.** Een set vensters (inclusief gesplitst beeld en vaste tabs) opslaan onder een naam, en met één klik of bij het aanmelden weer openen. Programma's die niet draaien worden dan gestart.
+   - *Waarom:* dit is de meest gewaardeerde functie van de concurrentie, en ProgramTabs heeft er met vaste tabs en heropenen al de helft van.
+3. **Sneltoetsen uitbreiden.** Ctrl+Alt+1–9 voor een tab, tabs zoeken (typ een deel van de naam), en sneltoetsen instelbaar maken.
+   - *Waarom:* weinig werk, en veel winst bij veel tabs.
+4. **Instellingenvenster met export/import.** Eén scherm voor uitzonderingen, sneltoetsen, uiterlijk en updates. Daarbij het exporteren en importeren van vaste tabs, namen en werkruimtes.
+   - *Waarom:* zo kun je je thuisinstellingen naar de werklaptop overzetten. Nu moet je daarvoor tekstbestanden in `%APPDATA%` kopiëren.
+5. **Voorbeeld bij zweven.** Een live miniatuur van het venster als je over een tab zweeft.
+   - *Waarom:* de DWM-thumbnailtechniek van het spiegelbeeld is er al, dus het is weinig werk. Vooral nuttig bij icoon-tabs.
+6. **"+"-knop of sneltoets voor een nieuw venster van hetzelfde programma**, zoals Chrome of Verkenner, dat meteen in de groep komt. Dit staat open op de wensenlijst van WindowTabs.
+7. **Kleuren per programma of groep.** Een kleuraccent op de tab, bv. werk-apps blauw en communicatie groen. Groupy-gebruikers noemen dit een snel hulpmiddel om te sorteren.
+8. **Rustiger tabbalk.** Een optie om de balk te verbergen bij één tab, en om hem minder fel of smaller te tonen. Daarbij een instelbare tabbreedte, als antwoord op de misklik-klacht.
+9. **Robuustheid en uitrol.** Testen met meerdere schermen, FancyZones, Teams en Office. Een code-signing-certificaat overwegen, zodat SmartScreen en bedrijfsbeveiliging de exe niet blokkeren. Dat kost een jaarlijks bedrag.
+10. **Taakbalk: één knop per groep.** Laagste prioriteit: technisch riskant (de taakbalkknoppen van andere programma's aanpassen) en weinig gevraagd.
+
+Bronnen: [Stardock Groupy](https://www.stardock.com/products/groupy/), [Groupy 2 op Steam](https://store.steampowered.com/sub/823992), [Stardock-forum: Groupy 2-ervaringen](https://forums.deadmansdrawgame.com/526125/reply/3921462), [XDA-review](https://www.xda-developers.com/stardock-groupy-2-multitask-productivity-boost-windows-11/), [TidyTabs](https://www.nurgo-software.com/products/tidytabs), [TidyTabs-prijzen](https://www.nurgo-software.com/pricing/tidytabs), [TidyTabs-gedrag (auto-hide)](https://help.nurgo-software.com/article/59-tidytabs-configuration-behavior), [SnapFiles-reviews TidyTabs](https://www.snapfiles.com/userreviews/113919/tidytabs.html), [WindowTabs README](https://github.com/leafOfTree/WindowTabs), [WindowTabs releases](https://github.com/leafOfTree/WindowTabs/releases).
+
 ## Wat deze eerste versie (ProgramTabs v0.1) doet
 Zie [README.md](README.md).
