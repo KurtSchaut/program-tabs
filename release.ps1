@@ -27,7 +27,8 @@ $hash = (Get-FileHash bin\ProgramTabs.exe -Algorithm SHA256).Hash.ToLower()
 git add -A
 git commit -m "Release v$Version"
 git tag "v$Version"
-git push --follow-tags origin HEAD
+git push origin HEAD
+git push origin "v$Version"
 
 # 4. GitHub release with the exe and its checksum
 if ($Notes -eq "") { $Notes = "ProgramTabs $Version" }
