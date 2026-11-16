@@ -286,13 +286,19 @@ namespace ProgramTabs
         public Bitmap GetIcon(IntPtr h)
         {
             Bitmap b;
-            if (!icons.TryGetValue(h, out b))
+            DateTime tried;
+            // A new window often sets its icon a moment after it appears: retry a missing icon every 3 s.
+            if (!icons.TryGetValue(h, out b) ||
+                (b == null && (!iconTried.TryGetValue(h, out tried) || (DateTime.Now - tried).TotalSeconds > 3)))
             {
                 b = WindowUtil.GetIcon(h);
                 icons[h] = b;
+                iconTried[h] = DateTime.Now;
             }
             return b;
         }
+
+        readonly Dictionary<IntPtr, DateTime> iconTried = new Dictionary<IntPtr, DateTime>();
 
         public TabGroup FindGroup(IntPtr h)
         {
@@ -540,6 +546,67 @@ namespace ProgramTabs
                 Log.Write("reopen " + r.Display);
             }
             catch (Exception ex) { MessageBox.Show("Openen mislukt: " + ex.Message, "ProgramTabs"); }
+        }
+
+        // ---- remembered icons of pinned tabs (so a closed tab keeps its real logo) ----
+
+        readonly HashSet<PinRule> iconSaved = new HashSet<PinRule>();
+        readonly Dictionary<string, Bitmap> savedIcons = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
+
+        static string IconFileFor(PinRule r)
+        {
+            string name = r.ProcessName + "_" + r.TitleKey;
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
+            return System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(PinStore.FilePath), "icons"), name + ".png");
+        }
+
+        /// <summary>Saves the icon of an open pinned window to disk (once per session).</summary>
+        public void RememberPinIcon(IntPtr h)
+        {
+            PinRule r;
+            if (!pinned.TryGetValue(h, out r) || iconSaved.Contains(r)) return;
+            Bitmap b = GetIcon(h);
+            if (b == null) return;
+            try
+            {
+                string file = IconFileFor(r);
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(file));
+                b.Save(file, System.Drawing.Imaging.ImageFormat.Png);
+                iconSaved.Add(r);
+                Bitmap old;
+                if (savedIcons.TryGetValue(file, out old)) { if (old != null) old.Dispose(); savedIcons.Remove(file); }
+            }
+            catch (Exception ex) { Log.Write("save icon: " + ex.Message); }
+        }
+
+        /// <summary>Icon for a closed pinned tab: the remembered logo, else the program file's icon.</summary>
+        public Bitmap GetPinIcon(PinRule r)
+        {
+            string file = IconFileFor(r);
+            Bitmap b;
+            if (!savedIcons.TryGetValue(file, out b))
+            {
+                b = null;
+                try
+                {
+                    if (System.IO.File.Exists(file))
+                        using (var ms = new System.IO.MemoryStream(System.IO.File.ReadAllBytes(file)))
+                            b = new Bitmap(ms);
+                    else if (PackagedApps.IsPackagedPath(r.ExePath))
+                    {
+                        // Store app never seen open: ask Windows for its Start-menu logo and remember it.
+                        b = PackagedApps.GetLogo(r.ExePath, 32);
+                        if (b != null)
+                        {
+                            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(file));
+                            b.Save(file, System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
+                }
+                catch (Exception ex) { Log.Write("pin icon: " + ex.Message); }
+                savedIcons[file] = b;
+            }
+            return b ?? GetExeIcon(r.ExePath);
         }
 
         public Bitmap GetExeIcon(string path)

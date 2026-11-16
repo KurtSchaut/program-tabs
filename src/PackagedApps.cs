@@ -1,6 +1,9 @@
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace ProgramTabs
 {
@@ -72,6 +75,74 @@ namespace ProgramTabs
                 "shell:AppsFolder\\" + aumid) { UseShellExecute = true });
             Log.Write("started packaged app " + aumid);
             return true;
+        }
+
+        // ---------- the app's logo, as the Start menu shows it ----------
+
+        [ComImport, Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        interface IShellItemImageFactory
+        {
+            [PreserveSig] int GetImage(SIZE size, int flags, out IntPtr phbm);
+        }
+
+        [StructLayout(LayoutKind.Sequential)] struct SIZE { public int cx, cy; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct BITMAP
+        {
+            public int bmType, bmWidth, bmHeight, bmWidthBytes;
+            public ushort bmPlanes, bmBitsPixel;
+            public IntPtr bmBits;
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+        static extern void SHCreateItemFromParsingName(string path, IntPtr pbc, ref Guid riid,
+            [MarshalAs(UnmanagedType.Interface)] out IShellItemImageFactory item);
+        [DllImport("gdi32.dll")] static extern int GetObject(IntPtr h, int size, out BITMAP bm);
+        [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr h);
+
+        /// <summary>Logo of a Store app (by its exe path), or null.</summary>
+        public static Bitmap GetLogo(string exePath, int size)
+        {
+            string aumid = AumidForFamily(FamilyFromPath(exePath), Path.GetFileNameWithoutExtension(exePath));
+            if (aumid == null) return null;
+            IntPtr hbm = IntPtr.Zero;
+            try
+            {
+                Guid iid = typeof(IShellItemImageFactory).GUID;
+                IShellItemImageFactory f;
+                SHCreateItemFromParsingName("shell:AppsFolder\\" + aumid, IntPtr.Zero, ref iid, out f);
+                const int SIIGBF_BIGGERSIZEOK = 0x1, SIIGBF_ICONONLY = 0x4;
+                if (f.GetImage(new SIZE { cx = size, cy = size }, SIIGBF_ICONONLY | SIIGBF_BIGGERSIZEOK, out hbm) != 0 || hbm == IntPtr.Zero)
+                    return null;
+                return FromHBitmap(hbm);
+            }
+            catch (Exception ex)
+            {
+                Log.Write("store logo: " + ex.Message);
+                return null;
+            }
+            finally
+            {
+                if (hbm != IntPtr.Zero) DeleteObject(hbm);
+            }
+        }
+
+        /// <summary>HBITMAP → Bitmap keeping transparency (Image.FromHbitmap drops the alpha channel).</summary>
+        static Bitmap FromHBitmap(IntPtr hbm)
+        {
+            BITMAP bm;
+            if (GetObject(hbm, Marshal.SizeOf(typeof(BITMAP)), out bm) != 0 && bm.bmBitsPixel == 32 && bm.bmBits != IntPtr.Zero)
+            {
+                using (var view = new Bitmap(bm.bmWidth, bm.bmHeight, bm.bmWidthBytes, PixelFormat.Format32bppPArgb, bm.bmBits))
+                {
+                    var copy = new Bitmap(bm.bmWidth, bm.bmHeight, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(copy)) g.DrawImage(view, 0, 0, bm.bmWidth, bm.bmHeight);
+                    if (bm.bmHeight > 0) copy.RotateFlip(RotateFlipType.RotateNoneFlipY); // bottom-up DIB
+                    return copy;
+                }
+            }
+            return Image.FromHbitmap(hbm);
         }
 
         static object Get(object o, string name)

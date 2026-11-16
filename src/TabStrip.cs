@@ -227,7 +227,8 @@ namespace ProgramTabs
                     bool iconOnly = manager.IsIconOnly(it);
                     int isz = (int)(16 * S);
                     int x = iconOnly ? r.Left + (r.Width - isz) / 2 : r.Left + (int)(8 * S);
-                    Bitmap icon = it.IsGhost ? manager.GetExeIcon(it.Pin.ExePath) : manager.GetIcon(it.Hwnd);
+                    Bitmap icon = it.IsGhost ? manager.GetPinIcon(it.Pin) : manager.GetIcon(it.Hwnd);
+                    if (it.IsPinned && !it.IsGhost) manager.RememberPinIcon(it.Hwnd);
                     if (icon == null && iconOnly)
                     {
                         // No icon available: show the first letter instead so the tab isn't empty.
@@ -238,7 +239,7 @@ namespace ProgramTabs
                     if (icon != null && (iconOnly || r.Width > isz + 12 * S))
                     {
                         var dest = new Rectangle(x, r.Top + (r.Height - isz) / 2, isz, isz);
-                        if (it.IsGhost) DrawFaded(g, icon, dest, 0.45f);
+                        if (it.IsGhost) DrawFaded(g, icon, dest, 0.7f);
                         else g.DrawImage(icon, dest);
                         x += isz + (int)(6 * S);
                     }
